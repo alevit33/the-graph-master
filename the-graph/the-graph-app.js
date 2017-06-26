@@ -125,8 +125,8 @@ module.exports.register = function (context) {
 
       return {
         x: fit.x,
-        y: fit.y,
-        scale: fit.scale,
+        y: fit.y + 100,
+        scale: fit.scale / 2,
         width: this.props.width,
         height: this.props.height,
         minZoom: this.props.minZoom,
@@ -313,8 +313,8 @@ module.exports.register = function (context) {
       var fit = TheGraph.findFit(this.props.graph, this.props.width, this.props.height);
       this.setState({
         x: fit.x,
-        y: fit.y,
-        scale: fit.scale
+        y: fit.y - 100,
+        scale: fit.scale / 2
       });
     },
     focusNode: function (node) {

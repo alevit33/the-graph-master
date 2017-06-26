@@ -35,6 +35,8 @@ function getDefaultMenus(editor) {
     },
     transition: function (graph, itemKey, item) {
       $("#transitionModal").modal("show");
+      $("#transitionModal input[name='form']").val(item.metadata.formId);
+      $("#transitionModal input[name='questionNumber']").val(item.metadata.questionNumber);
     }.bind(editor)
   }, edgeActions = {
     delete: function (graph, itemKey, item) {

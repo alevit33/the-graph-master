@@ -95,19 +95,22 @@
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title">New Transition</h4>
+            <h4 class="modal-title">Nuova Transizione</h4>
           </div>
           <div class="modal-body">
             <form>
               <div class="form-group">
-              <label for="text">Transition to new form:</label>
-                <input type="text" class="form-control" placeholder="Form name">
+              <input type="hidden" name="form">
+              <input type="hidden" name="questionNumber">
+              <label for="text">Alla seguente risposta:</label>
+                <input type="text" name="res" class="form-control" placeholder="Risposta">
+              <label for="text">Nome nuovo Form:</label>
+                <input type="text" name="title" class="form-control" placeholder="Nome Form">
               </div>
-              <p>Transition to extisitng form:</p>
             </form>
           </div>
           <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Submit</button>
+          <button type="submit" class="btn btn-success" onclick="newTransition()">Submit</button>
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
           </div>
         </div>
@@ -233,7 +236,6 @@
 
     <div id="testing">
       <button id="theme">theme</button>
-      <button id="focus">focus</button>
       <button id="serialize">serialize</button>
     </div>
     <div id="loading" style="position:absolute; top:10px; left:10px; background-color:white; padding:10px; border-radius:5px;">
@@ -244,9 +246,6 @@
       var fbpGraph = window.TheGraph.fbpGraph;
 
       var model = window.TheGraph.model;
-      function load(){
-        loadGraph(TheGraph.trasformData(model.serialize()));
-      }
 
       Polymer.veiledElements = ["the-graph-editor"];
       window.addEventListener('polymer-ready', function() {
@@ -312,13 +311,6 @@
             editor.theme = theme;
           });
 
-          // Focus a node
-          document.getElementById("focus").addEventListener("click", function () {
-            var nodes = editor.graph.nodes;
-            var randomNode = nodes[Math.floor(Math.random()*nodes.length)];
-            editor.focusNode(randomNode);
-          });
-
           // Serialize Graph
           document.getElementById("serialize").addEventListener("click", function () {
             $('#newSerializeModal').modal('show');
@@ -331,7 +323,7 @@
           //console.log(editor);
         };
 
-        load();
+        loadGraph(TheGraph.trasformData(model.serialize()));
 
         // Resize to fill window and also have explicit w/h attributes
         var editor = document.getElementById("editor");
@@ -343,6 +335,19 @@
 
         resize();
       });
+
+      function load(){
+        var json = TheGraph.trasformData(model.serialize());
+          var editor = document.getElementById('editor');
+          editor.graph = null;
+          fbpGraph.graph.loadJSON(json, function(err, graph){
+            if (err) {
+              loadingMessage.innerHTML = "error loading graph: " + err.toString();
+              return;
+            }
+            editor.graph = graph;
+          });
+      }
 
       /**
       Restituisce il form dato il suo id e il rootform
@@ -388,18 +393,9 @@
           }
           var form = getForm(formId, model);
           form.addQuestion({question: text, metadata: metadata});
-          var json = TheGraph.trasformData(model.serialize());
-          var editor = document.getElementById('editor');
-          editor.graph = null;
-          fbpGraph.graph.loadJSON(json, function(err, graph){
-            if (err) {
-              loadingMessage.innerHTML = "error loading graph: " + err.toString();
-              return;
-            }
-            editor.graph = graph;
-          });
+          load();
           $("#newQuestionModal").modal("hide");
-          $("#newQuestionModal input:first").val("");
+          $("#newQuestionModal input[type='text']:first").val("");
           $("#newQuestionModal input[placeholder='Sottotitolo']").val("");
           $("#newQuestionModal select:first").val(null);
           $('#questionOptions').css('display','none');
@@ -428,6 +424,28 @@
         x.setAttribute("type", "text");
         x.setAttribute("class", "form-control");
         div.insertBefore(x, button);
+      }
+
+      function newTransition(){
+        var ans = $("#transitionModal input[type='text']:first").val();
+        var title = $("#transitionModal input[name='title']").val();
+        var questionNumber = $("#transitionModal input[name='questionNumber']").val();
+        var formId = $("#transitionModal input[name='form']").val();
+        if(ans != ''){
+          var question = getForm(formId, model).getQuestion(questionNumber);
+          var form = TheGraph.createForm(title);
+          question.addSubFormForAnswers([ans], form);
+          load();
+          $("#transitionModal").modal("hide");
+          $("#transitionModal input[name='title']").val("");
+          $("#transitionModal input[name='questionNumber']").val("");
+          $("#transitionModal input[name='form']").val("");
+          $("#transitionModal input[name='res']").val("");
+          $('#transitionModal').css('display','none');
+        }
+        else{
+          alert("Inserire la risposta");
+        }
       }
       
     </script>

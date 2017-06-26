@@ -80,6 +80,9 @@
         force: {
           src: sources.scripts,
           options: { force: true }
+        },
+        all: {
+          src: sources.scripts
         }
       },
       connect: {
@@ -152,7 +155,7 @@
 
     this.registerTask('dev', ['test', 'watch']);
     this.registerTask('build', ['bower-install-simple', 'exec:build_stylus', 'exec:build_fa', 'browserify:libs']);
-    this.registerTask('test', ['jshint:all', 'build', 'coffee', 'connect:server']);
+    this.registerTask('test', ['eslint:all', 'build', 'coffee', 'connect:server']);
     this.registerTask('crossbrowser', ['test', 'saucelabs-mocha']);
     this.registerTask('default', ['test']);
   };

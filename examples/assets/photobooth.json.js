@@ -1449,7 +1449,7 @@ function makeid()
 }
 
 
-function processForm(group, questions, level, forms, xOffset) {
+function processForm(group, questions, level, forms, xOffset, currentFormId) {
 
   if (!level)
     level = 0;
@@ -1466,7 +1466,7 @@ function processForm(group, questions, level, forms, xOffset) {
 
     if (questions[i].form) {
 
-      var formNodes = processForm(forms[questions[i].form].title, forms[questions[i].form].questions, level, forms, xOffset);
+      var formNodes = processForm(forms[questions[i].form].title, forms[questions[i].form].questions, level, forms, xOffset, questions[i].form);
 
 
       if (i > 0) {
@@ -1493,10 +1493,10 @@ function processForm(group, questions, level, forms, xOffset) {
         nodes: formNodes.nodes,
         spacing: 400,
         metadata: {
-          description: "Esempio contenitore",
+          description: "",
           color: 1,
           spacing: 10,
-          formId: forms[questions[i].form].id
+          formId: questions[i].form
         }
       });
 
@@ -1509,9 +1509,11 @@ function processForm(group, questions, level, forms, xOffset) {
       var node = {
         "component": questions[i].question,
         "metadata": {
+          "formId": currentFormId,
+          "questionNumber": i,
           id: key,
-          "x": xOffset+ i*150 +200,
-          "y": level*200, //+ i*100,
+          "x": xOffset+ i*180 +200,
+          "y": level*300, //+ i*100,
           "label": questions[i].question.substr(0, 15) + '..',
           padding: 400,
         }
@@ -1533,7 +1535,7 @@ function processForm(group, questions, level, forms, xOffset) {
         });
       }
 
-      xOffsetOut = xOffset+ i*150 +200;
+      xOffsetOut = xOffset+ i*180 +200;
 
       var n_elements = Object.keys(questions[i].mapAnswers).length -1;
 
@@ -1545,7 +1547,7 @@ function processForm(group, questions, level, forms, xOffset) {
 
         var target = questions[i].mapAnswers[k];
 
-        var formNodes1 = processForm(forms[target], forms[target].questions, level + 1, forms, off + n);
+        var formNodes1 = processForm(forms[target], forms[target].questions, level + 1, forms, off + n, target);
 
         n += forms[target].questions.length * 350;
 
@@ -1560,6 +1562,18 @@ function processForm(group, questions, level, forms, xOffset) {
           },
           "metadata": {
             "route": "0"
+          }
+        });
+
+        groups.push({
+          name: forms[target].title,
+          nodes: formNodes1.nodes,
+          spacing: 400,
+          metadata: {
+            description: "",
+            color: 1,
+            spacing: 10,
+            formId: target
           }
         });
 
@@ -1593,9 +1607,9 @@ function trasformData(data) {
     if (data[id].root) {
       var rootForm = data[id];
 
-      var elements = processForm('root', rootForm.questions, 0, data);
+      var elements = processForm('root', rootForm.questions, 0, data, 0, id);
 
-      groups.push({
+      groups.unshift({
         name: rootForm.title,
         nodes: elements.nodes,
         metadata: {
@@ -2127,6 +2141,12 @@ module.exports.register = function (context) {
   TheGraph.trasformData = trasformData;
 
   TheGraph.model = rootForm;
+
+  TheGraph.createForm = function(title){
+    var form = new Form ({title:title});
+    form.addQuestion({question: 'Default Question'});
+    return form;
+  }
 
 
 };
