@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>the-graph browser tests</title>
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css">
+
+    <!-- External depdendencies -->
+    <script src="../node_modules/webcomponents.js/webcomponents.js"></script>
+    <script src="../node_modules/react/dist/react.js"></script>
+    <script src="../node_modules/react-dom/dist/react-dom.js"></script>
+    <script src="../node_modules/klayjs-noflo/klay-noflo.js"></script>
+    <script src="../node_modules/hammerjs/hammer.min.js"></script>
+
+    <!-- Browserify Libraries -->
+    <script src="../dist/the-graph.js"></script>
+    <script src="../node_modules/@pleasetrythisathome/react.animate/react.animate.js"></script>
+
+    <!-- Custom elements -->
+    <link rel="import" href="../bower_components/polymer/polymer.html">
+    <link rel="import" href="../the-graph-editor/the-graph-editor.html">
+
+    <style type="text/css">
+      #editor {
+        width: 400px;
+        height: 300px;
+        position: absolute;
+        top: 0;
+        right: 400px;
+        border: none;
+      }
+    </style>
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script src="../node_modules/chai/chai.js"></script>
+    <script>
+      if (window.initMochaPhantomJS) {
+        window.initMochaPhantomJS();
+      }
+      mocha.setup('bdd');
+    </script>
+  </head>
+  <body>
+    <div id="mocha"></div>
+
+    <!-- Stuff under test -->
+   <the-graph-editor id="editor"
+      width="400" height="300"
+      grid="72"
+      snap="36"
+      theme="dark">
+    </the-graph-editor>
+
+    <script src="basics.js"></script>
+    <script src="editing.js"></script>
+    <script src="graphchanges.js"></script>
+    <script src="nav.js"></script>
+    <script src="thumbnail.js"></script>
+    <script src="runmocha.js"></script>
+  </body>
+</html>
