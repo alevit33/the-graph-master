@@ -166,7 +166,6 @@ function getDefaultMenus(editor) {
         icon: "question",
         iconLabel: "New Question",
         action: function (graph, itemKey, item) {
-          console.log(item);
           $("#newQuestionModal").modal("show");
           $("#newQuestionModal input[name='form']").val(item.metadata.formId);
           //modals.element();
