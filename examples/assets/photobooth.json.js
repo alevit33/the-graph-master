@@ -1435,7 +1435,6 @@ var sample = {
 
 var processes = {};
 var groups = [];
-var groups = [];
 var connections = [];
 
 function makeid()
@@ -1497,6 +1496,7 @@ function processForm(group, questions, level, forms, xOffset) {
           description: "Esempio contenitore",
           color: 1,
           spacing: 10,
+          formId: forms[questions[i].form].id
         }
       });
 
@@ -1584,10 +1584,14 @@ function processForm(group, questions, level, forms, xOffset) {
 
 function trasformData(data) {
 
-  for (var i in data) {
+  processes = {};
+  groups = [];
+  connections = [];
 
-    if (data[i].root) {
-      var rootForm = data[i];
+  for (var id in data) {
+
+    if (data[id].root) {
+      var rootForm = data[id];
 
       var elements = processForm('root', rootForm.questions, 0, data);
 
@@ -1597,7 +1601,8 @@ function trasformData(data) {
         metadata: {
           description: "Esempio contenitore",
           color: 5,
-          spacing: 70
+          spacing: 70,
+          formId: id
         }
       });
     }
@@ -1873,42 +1878,247 @@ var sample2 = {
 
 var Form = require('./../../complex-form/form.js');
 
-var a = new Form({title: "Gruppi societari", metadata: {something: true}});
+const a = new Form({title: "Gruppi societari", metadata: {something: true}});
 
 a.addQuestion({
   question: 'La Vostra Società controlla, è controllata o collegata con altre società ?',
   metadata: {
-    type: 'textarea',
+    type: 'radio',
+    options: ['Si', 'No'],
     additionalInfo: 'true',
-    header: ''
+    header: {
+      'title': 'Gruppi societari',
+      'subtitle': 'Fornisci tutte le informazioni necessarie per farci capire la struttura della tua società!',
+      'items': [
+        'Fornisci le informazioni in modo chiaro',
+        'Compila tutti i campi per permetterci di avere una visione organica',
+        'Carica files non pesanti oltre i 5 megabyte'
+      ]
+    }
   }
 });
 
 a.addQuestion({
   question: 'Fornire schema riepilogativo della struttura societaria.',
   metadata: {
+    subtitle: 'Caricare un files, in qualsivoglia formato che rappresenta la struttura della società',
     additionalInfo: 'true',
     type: 'file'
   }
 });
 
-var b = a.addQuestion({
+a.addQuestion({
   question: 'Il gruppo di cui fate parte ha società con sedi Extra-UE ?',
   metadata: {
-    type: 'radio'
+    textarea: 'Si intende società la cui casa madre ha una sede in una paese fuori dalla UE',
+    type: 'radio',
+    options: ['Si', 'No']
   }
 });
 
-var a_1 = new Form({title: "caseyes", metadata: {something: true}});
+const a_1 = new Form({title: "caseyes", metadata: {something: true}});
 
 a_1.addQuestion({
-  question: 'indicare in quali paesi.',
+  question: 'Indicare in quali paesi.',
   metadata: {
+    subtitle: 'Separa i paesi con una virgola se sono più di uno',
     type: 'textarea'
   }
 });
 
-a.getQuestion(2).addSubFormForAnswers(['si'], a_1);
+a.getQuestion(2).addSubFormForAnswers(['Si'], a_1);
+
+const b = new Form({title: "Struttura societaria", metadata: {something: true}});
+
+b.addQuestion({
+  question: 'Informazioni di base della Società',
+  metadata: {
+    type: 'textarea',
+    additionalInfo: 'true',
+    subtitle: 'Inserisci le informazioni di base della tua società',
+    placeholder: 'Inserisci informazioni della società',
+    header: {
+      'title': 'Struttura societaria',
+      'subtitle': 'Fornisci tutte le informazioni necessarie per farci capire la struttura della tua società!',
+      'items': [
+        'Fornisci le informazioni in modo chiaro',
+        'Compila tutti i campi per permetterci di avere una visione organica',
+        'Carica files non pesanti oltre i 5 megabyte'
+      ]
+    }
+  }
+});
+
+b.addQuestion({
+  question: 'Fornire visura storica',
+  metadata: {
+    additionalInfo: 'true',
+    type: 'file',
+    subtitle: 'Carica il file con la visione storica della vostra società'
+  }
+});
+
+b.addQuestion({
+  question: 'La Società ha almeno una sede nel territorio dell’Unione Europea?',
+  metadata: {
+    type: 'radio',
+    options: ['Si, la mia società ha almeno una sede in UE', 'No, la mia società non ha alcuna sede in UE']
+  }
+});
+
+const b_2 = new Form({title: "caseno1", metadata: {something: true}});
+
+b_2.addQuestion({
+  question: 'La Società offre beni o servizi all’interno del territorio dell’Unione Europea?',
+  metadata: {
+    subtitle: 'è irrilevante la presenza di una sede attraverso cui vengono offerti tali beni o servizi',
+    type: 'radio',
+    options: ['Si', 'No']
+  }
+});
+
+b.getQuestion(2).addSubFormForAnswers(['No, la mia società non ha alcuna sede in UE'], b_2);
+
+
+const c = new Form({title: "Gruppi societari - Clienti", metadata: {something: true}});
+
+const u = c.addQuestion({
+  question: 'La Società comunica i dati dei propri dipendenti/collaboratori alla propria casa madre estera e/o infragruppo all’interno dell’UE? ',
+  metadata: {
+    type: 'radio',
+    options: ['Si', 'No'],
+    additionalInfo: 'true',
+    header: {
+      'title': 'Trasferimento di dati all\'estero',
+      'subtitle': 'Trasferimento di dati - Dipendenti',
+      'items': [
+        'Fornisci le informazioni in modo chiaro',
+        'Compila tutti i campi per permetterci di avere una visione organica',
+        'Carica files non pesanti oltre i 5 megabyte'
+      ]
+    }
+  }
+});
+
+const u_1 = new Form({title: "caseyes2", metadata: {something: true}});
+
+u.addSubFormForAnswers(['Si'], u_1);
+
+const dd = u_1.addQuestion({
+  question: 'Indicare finalità',
+  metadata: {
+    type: 'checkbox',
+    options: ['Finalità_1', 'Finalità_2', 'Finalità_3', 'Altro', 'Finalità_7', 'Finalità_8', 'Finalità_9', 'Finalità_boh']
+  }
+});
+
+const f_1 = new Form({title: "casealtro", metadata: {something: true}});
+
+dd.addSubFormForAnswers(['Altro'], f_1);
+
+f_1.addQuestion({
+  question: 'Specificare per quali altre finalità',
+  metadata: {
+    additionalInfo: 'true',
+    subtitle: 'E\' necessario conoscere tutte le finalità per cui tu comunichi i dati dei tuoi dipendenti',
+    type: 'textarea'
+  }
+});
+
+
+c.addQuestion({
+  question: 'I dipendenti/collaboratori sono informati della condivisione dei loro dati infragruppo?',
+  metadata: {
+    subtitle: '',
+    additionalInfo: 'true',
+    type: 'radio',
+    options: ['Si', 'No']
+  }
+});
+
+const a_A = a.addQuestion({
+  question: 'I dipendenti/collaboratori sono informati della condivisione dei loro dati infragruppo?',
+  metadata: {
+    subtitle: '',
+    additionalInfo: 'true',
+    type: 'radio',
+    options: ['Si', 'No']
+  }
+});
+
+const a_a_1 = new Form({title: "caseyes3", metadata: {something: true}});
+a_A.addSubFormForAnswers(['Si'], a_a_1);
+
+a_a_1.addQuestion({
+  question: 'Quale strumento / quali strumenti di garanzia sono stati utilizzati a supporto?',
+  metadata: {
+    subtitle: 'Scegliere una o più opzioni',
+    additionalInfo: 'true',
+    type: 'checkbox',
+    options: [
+      'Model clauses', 
+      'Binding corporate rules', 
+      'Privacy shield', 
+      'Consenso degli interessati',
+      'Adempimento contrattuale',
+      'Interesse pubblico',
+      'Meccanismo individuato da ente di certificazione / codice di condotta']
+  }
+});
+
+
+
+const d = new Form({title: "Gruppi societari - Dipendenti", metadata: {something: true}});
+
+const bb = d.addQuestion({
+  question: 'La Società comunica i dati dei propri clienti alla casa madre estera e/o infragruppo nel territprio dell’Unione Europea?',
+  metadata: {
+    textarea: 'Si intende società la cui casa madre ha una sede in una paese fuori dalla UE',
+    type: 'radio',
+    options: ['Si', 'No'],
+    header: {
+      'title': 'Trasferimento di dati all\'estero',
+      'subtitle': 'Trasferimento di dati - Clienti',
+      'items': [
+        'Fornisci le informazioni in modo chiaro',
+        'Compila tutti i campi per permetterci di avere una visione organica',
+        'Carica files non pesanti oltre i 5 megabyte'
+      ]
+    }
+  }
+});
+
+d.addQuestion({
+  question: 'Indicare per quali finalità',
+  metadata: {
+    subtitle: 'Scegliere una o più opzioni',
+    additionalInfo: 'true',
+    type: 'checkbox',
+    options: [
+      'Model clauses', 
+      'Binding corporate rules', 
+      'Privacy shield', 
+      'Consenso degli interessati',
+      'Adempimento contrattuale',
+      'Interesse pubblico',
+      'Meccanismo individuato da ente di certificazione / codice di condotta']
+  }
+});
+
+d.addQuestion({
+  question: 'I clienti hanno ricevuto un’informativa privacy in merito alla condivisione dei loro dati infragruppo ?',
+  metadata: {
+    type: 'radio',
+    options: ['Si', 'No'],
+  }
+});
+
+let rootForm = new Form({title: "Questionario Privacy", metadata: {}});
+rootForm.addForm(a);
+rootForm.addForm(b);
+rootForm.addForm(c);
+rootForm.addForm(d);
+
 
 module.exports.register = function (context) {
 
@@ -1916,8 +2126,7 @@ module.exports.register = function (context) {
 
   TheGraph.trasformData = trasformData;
 
-  //TheGraph.example = trasformData(a.serialize());
-  TheGraph.model = a;
+  TheGraph.model = rootForm;
 
 
 };

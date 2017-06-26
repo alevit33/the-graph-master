@@ -1,7 +1,5 @@
 
 var Clipboard = require('./clipboard');
-require('node-jsx').install();
-var modals = require('./../components/modals.jsx');
 
 // Returns a new datastructure to prevent accidental sharing between diffent editor instances
 function getDefaultMenus(editor) {
@@ -168,9 +166,10 @@ function getDefaultMenus(editor) {
         icon: "question",
         iconLabel: "New Question",
         action: function (graph, itemKey, item) {
-          //$("#newFormModal").modal("show");
-          console.log(modals);
-          modals.element();
+          console.log(item);
+          $("#newQuestionModal").modal("show");
+          $("#newQuestionModal input[name='form']").val(item.metadata.formId);
+          //modals.element();
         }
       },
       e4: pasteMenu,

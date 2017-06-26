@@ -7,7 +7,7 @@
       "* Copyright (c) <%= grunt.template.today('yyyy') %> <%= pkg.author.name %>; Licensed <%= _.pluck(pkg.licenses, 'type').join(', ') %> */\n";
 
     var sources = {
-      scripts: ['Gruntfile.js', 'the-*/*.js', 'the-*/*.html', 'index.js','examples/assets/photobooth.json.js', 'components/*.jsx'],//, 'the-*/*.html'
+      scripts: ['Gruntfile.js', 'the-*/*.js', 'the-*/*.html', 'index.js','examples/assets/photobooth.json.js'],//, 'the-*/*.html', 'components/*.jsx'
       // elements: ['the-*/*.html'],
       stylus: ['themes/*/*.styl'],
       css: ['themes/*.css'],

@@ -181,17 +181,31 @@
           <div class="modal-body">
             <form>
               <div class="form-group">
-              <label for="text">Testo della domanda:</label>
+              <input type="hidden" name="form">
+              <label>Testo della domanda:</label>
                 <input type="text" class="form-control" placeholder="Domanda">
+              <label>Sottotitolo:</label>
+                <input type="text" class="form-control" placeholder="Sottotitolo">
               </div>
+              <br>
               <div class="form-group">
-              <label for="text">Metadata:</label>
-                <input type="text" class="form-control" placeholder="Domanda">
+              <label>Tipo:</label>
+                <select onchange="changeQuestionType(this)" class="form-control">
+                  <option value="null">Seleziona il tipo</option>
+                  <option value="radio">Scelta singola</option>
+                  <option value="checkbox">Scelta multipla</option>
+                  <option value="textarea">Risposta aperta</option>
+                  <option value="file">Caricamento file</option>
+                </select>
+                <br>
+                <div id="questionOptions" style="display: none">
+                  
+                </div>
               </div>
             </form>
           </div>
           <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Submit</button>
+          <button type="submit" class="btn btn-success" onclick="newQuestion()">Submit</button>
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
           </div>
         </div>
@@ -199,11 +213,28 @@
       </div>
     </div>
 
+    <!-- New serialize Modal -->
+    <div class="modal fade" id="newSerializeModal" role="dialog">
+      <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Serialize Grafo</h4>
+          </div>
+          <div class="modal-body">
+            <pre></pre>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <div id="testing">
-      <button id="autolayout">autolayout</button>
       <button id="theme">theme</button>
       <button id="focus">focus</button>
-      <button id="refresh">refresh</button>
+      <button id="serialize">serialize</button>
     </div>
     <div id="loading" style="position:absolute; top:10px; left:10px; background-color:white; padding:10px; border-radius:5px;">
       <img src="assets/loading.gif"/>
@@ -211,6 +242,12 @@
     </div>
     <script type="text/javascript">
       var fbpGraph = window.TheGraph.fbpGraph;
+
+      var model = window.TheGraph.model;
+      function load(){
+        loadGraph(TheGraph.trasformData(model.serialize()));
+      }
+
       Polymer.veiledElements = ["the-graph-editor"];
       window.addEventListener('polymer-ready', function() {
         "use strict";
@@ -225,7 +262,7 @@
           editor.graph = null;
           var graphData = json.data ? JSON.parse(json.data.files['noflo.json'].content) : json;
     
-          fbpGraph.graph.loadJSON(JSON.stringify(graphData), function(err, graph){
+          fbpGraph.graph.loadJSON(graphData, function(err, graph){
             if (err) {
               loadingMessage.innerHTML = "error loading graph: " + err.toString();
               return;
@@ -267,79 +304,6 @@
           }
           editor.graph.on('endTransaction', renderNav); // graph changed
           editor.addEventListener('viewchanged', renderNav); // editor viewport changed
-          
-          /*
-          // Simulate a library update
-          setTimeout(function () {
-            var originalComponent = editor.getComponent('core/Split');
-            if (!originalComponent) {
-              console.warn("Didn't find component. Something is amiss.");
-              return;
-            }
-            var component = JSON.parse(JSON.stringify(originalComponent));
-            component.icon = 'github';
-            component.inports.push({
-              name: 'supercalifragilisticexpialidocious',
-              type: 'boolean'
-            });
-            component.outports.push({
-              name: 'boo',
-              type: 'boolean'
-            });
-            editor.registerComponent(component);
-          }, 1000);
-
-          // Simulate node icon updates
-          var iconKeys = Object.keys(TheGraph.FONT_AWESOME);
-          window.setInterval(function () {
-            if (!editor.graph) { return; }
-            var nodes = editor.graph.nodes;
-            if (nodes.length>0) {
-              var randomNodeId = nodes[Math.floor(Math.random()*nodes.length)].id;
-              var randomIcon = iconKeys[Math.floor(Math.random()*iconKeys.length)];
-              editor.updateIcon(randomNodeId, randomIcon);
-            }
-          }, 1000);
-
-          // Simulate un/triggering wire animations
-          var animatingEdge1 = null;
-          var animatingEdge2 = null;
-          window.setInterval(function () {
-            if (!editor.graph) { return; }
-            if (animatingEdge2) {
-              editor.unanimateEdge(animatingEdge2);
-            }
-            if (animatingEdge1) {
-              animatingEdge2 = animatingEdge1;
-            }
-            var edges = editor.graph.edges;
-            if (edges.length>0) {
-              animatingEdge1 = edges[Math.floor(Math.random()*edges.length)];
-              editor.animateEdge(animatingEdge1);
-            }
-          }, 2014);
-
-          // Simulate un/triggering errors
-          var errorNodeId = null;
-          var makeRandomError = function () {
-            if (!editor.graph) { return; }
-            if (errorNodeId) {
-              editor.removeErrorNode(errorNodeId);
-            }
-            var nodes = editor.graph.nodes;
-            if (nodes.length>0) {
-              errorNodeId = nodes[Math.floor(Math.random()*nodes.length)].id;
-              editor.addErrorNode(errorNodeId);
-              editor.updateErrorNodes();
-            }
-          };
-          window.setInterval(makeRandomError, 3551);
-          makeRandomError();*/
-
-          // Autolayout button
-          document.getElementById("autolayout").addEventListener("click", function () {
-            editor.triggerAutolayout();
-          });
 
           // Toggle theme
           var theme = "light";
@@ -355,33 +319,19 @@
             editor.focusNode(randomNode);
           });
 
-          // Refresh graph
-          document.getElementById("refresh").addEventListener("click", function () {
-            if (!editor.graph) { return; }
-            editor.graph = JSON.parse(graphString);
+          // Serialize Graph
+          document.getElementById("serialize").addEventListener("click", function () {
+            $('#newSerializeModal').modal('show');
+            $('#newSerializeModal .modal-body pre').html(JSON.stringify(model.serialize(), null, 2));
+            console.log(JSON.stringify(model.serialize(), null, 2));
           });
 
           // Log some stuff
           window.editor = editor;
           //console.log(editor);
         };
-        var body = document.querySelector('body');
-        var script = document.createElement('script');
-        script.type = 'application/javascript';
-        // Clock
-        // script.src = 'https://api.github.com/gists/7135158?callback=loadGraph';
-        // script.src = 'clock.json.js';
-        // script.src = 'assets/photobooth.json.js';
-        // Gesture object building (lots of ports!)
-        // script.src = 'https://api.github.com/gists/7022120?callback=loadGraph';
-        // Gesture data gathering (big graph)
-        // script.src = 'https://api.github.com/gists/7022262?callback=loadGraph';
-        // Edge algo test
-        //script.src = 'https://api.github.com/gists/6890344?callback=loadGraph';
-        body.appendChild(script);
 
-        var model = window.TheGraph.model;
-        loadGraph(TheGraph.trasformData(model.serialize()));
+        load();
 
         // Resize to fill window and also have explicit w/h attributes
         var editor = document.getElementById("editor");
@@ -393,6 +343,93 @@
 
         resize();
       });
+
+      /**
+      Restituisce il form dato il suo id e il rootform
+      */
+      function getForm(id, rootForm){
+        console.log(rootForm, id);
+        if(rootForm.id == id){
+          return rootForm;
+        }
+        var res;
+        for (var i in rootForm.storage){
+          if (rootForm.storage[i].isQuestion()){
+            var question = rootForm.storage[i];
+            for (var a in question.mapAnswers){
+              res = getForm(id,question.mapAnswers[a]);
+              if(res){
+                return res;
+              }
+            }
+          }
+          else{
+            res = getForm(id, rootForm.storage[i]);
+            if(res){
+              return res
+            }
+          }
+        }
+        return false;
+      }
+      
+      function newQuestion(){
+        var text = $("#newQuestionModal input[type='text']:first").val();
+        var subtitle = $("#newQuestionModal input[placeholder='Sottotitolo']").val();
+        var type = $("#newQuestionModal select:first").val();
+        var formId = $("#newQuestionModal input[name='form']").val();
+        if(type != 'null'){
+          var metadata = {type: type, subtitle:subtitle};
+          if (type == "radio" || type == "checkbox"){
+            metadata['options'] = [];
+            $("#questionOptions input[type=text").each(function(){
+              if($(this).val() != "")
+                metadata.options.push($(this).val());
+            })
+          }
+          var form = getForm(formId, model);
+          form.addQuestion({question: text, metadata: metadata});
+          var json = TheGraph.trasformData(model.serialize());
+          var editor = document.getElementById('editor');
+          editor.graph = null;
+          fbpGraph.graph.loadJSON(json, function(err, graph){
+            if (err) {
+              loadingMessage.innerHTML = "error loading graph: " + err.toString();
+              return;
+            }
+            editor.graph = graph;
+          });
+          $("#newQuestionModal").modal("hide");
+          $("#newQuestionModal input:first").val("");
+          $("#newQuestionModal input[placeholder='Sottotitolo']").val("");
+          $("#newQuestionModal select:first").val(null);
+          $('#questionOptions').css('display','none');
+        }
+        else{
+          alert("selezionare il tipo di domanda");
+        }
+      }
+
+      function changeQuestionType(select){
+        var a = document.getElementById('questionOptions');
+        a.innerHTML = ' <input type="text" class="form-control">\
+                        <input type="text" class="form-control">\
+                        <input type="button" value="Aggiungi risposta" onclick="addResponse(this)">'
+        if (select.value == "radio" || select.value == "checkbox"){
+          a.style.display = "block";
+        }
+        else{
+          a.style.display = "none";
+        }
+      }
+
+      function addResponse(button){
+        var div = button.parentNode;
+        var x = document.createElement("INPUT");
+        x.setAttribute("type", "text");
+        x.setAttribute("class", "form-control");
+        div.insertBefore(x, button);
+      }
       
     </script>
   </body>
