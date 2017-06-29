@@ -12,7 +12,7 @@ function getDefaultMenus(editor) {
   }.bind(editor);
   var pasteMenu = {
     icon: "paste",
-    iconLabel: "paste",
+    iconLabel: "Incolla",
     action: pasteAction
   };
   // Default context menu defs
@@ -63,7 +63,7 @@ function getDefaultMenus(editor) {
       icon: "long-arrow-right",
       s4: {
         icon: "trash-o",
-        iconLabel: "delete",
+        iconLabel: "Elimina",
         action: edgeActions.delete
       }
     },
@@ -71,17 +71,17 @@ function getDefaultMenus(editor) {
       actions: nodeActions,
       s4: {
         icon: "trash-o",
-        iconLabel: "delete",
+        iconLabel: "Elimina",
         action: nodeActions.delete
       },
-      w4: {
-        icon: "copy",
-        iconLabel: "copy",
-        action:  nodeActions.copy
-      },
+      // w4: {
+      //   icon: "copy",
+      //   iconLabel: "Copia",
+      //   action:  nodeActions.copy
+      // },
       n4: {
-        icon: "arrow-right",
-        iconLabel: "Transition",
+        icon: "sitemap",
+        iconLabel: "Branch",
         action:  nodeActions.transition
       }
     },
@@ -112,7 +112,7 @@ function getDefaultMenus(editor) {
     nodeOutport: {
       e4: {
         icon: "sign-out",
-        iconLabel: "export",
+        iconLabel: "Esporta",
         action: function (graph, itemKey, item) {
           var pub = item.port;
           var count = 0;
@@ -135,7 +135,7 @@ function getDefaultMenus(editor) {
       },
       s4: {
         icon: "trash-o",
-        iconLabel: "delete",
+        iconLabel: "Elimina",
         action: function (graph, itemKey, item) {
           graph.removeInport(itemKey);
         }
@@ -149,7 +149,7 @@ function getDefaultMenus(editor) {
       },
       s4: {
         icon: "trash-o",
-        iconLabel: "delete",
+        iconLabel: "Elimina",
         action: function (graph, itemKey, item) {
           graph.removeOutport(itemKey);
         }
@@ -157,26 +157,26 @@ function getDefaultMenus(editor) {
     },
     group: {
       icon: "th",
-      n4: {
+      w4: {
         icon: "plus",
-        iconLabel: "New Form",
+        iconLabel: "Gruppo",
         action: function (graph, itemKey, item) {
-          graph.newForm(itemKey);
+          newForm(item);
         }
       },
-      w4: {
-        icon: "question",
-        iconLabel: "New Question",
+      n4: {
+        icon: "plus",
+        iconLabel: "Domanda",
         action: function (graph, itemKey, item) {
           $("#newQuestionModal").modal("show");
           $("#newQuestionModal input[name='form']").val(item.metadata.formId);
           //modals.element();
         }
       },
-      e4: pasteMenu,
+      // e4: pasteMenu,
       s4: {
         icon: "trash-o",
-        iconLabel: "Delete Form",
+        iconLabel: "Elimina",
         action: function (graph, itemKey, item) {
           graph.removeGroup(itemKey);
         }
@@ -195,7 +195,7 @@ function getDefaultMenus(editor) {
       icon: "th",
       w4: {
         icon: "copy",
-        iconLabel: "copy",
+        iconLabel: "Copia",
         action: function (graph, itemKey, item) {
           Clipboard.copy(graph, item.nodes);
         }

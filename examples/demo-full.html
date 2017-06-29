@@ -77,13 +77,13 @@
   <body>
 
     <the-graph-editor id="editor" 
-      width="800" height="600" 
+      width="960" height="600" 
       grid="72" 
       snap="36" 
       theme="light">
     </the-graph-editor>
 
-    <div id="nav"></div>
+    <div id="nav" style="display:none"></div>
 
     <div id="root" style="position: absolute;"></div>
 
@@ -102,16 +102,18 @@
               <div class="form-group">
               <input type="hidden" name="form">
               <input type="hidden" name="questionNumber">
-              <label for="text">Alla seguente risposta:</label>
-                <input type="text" name="res" class="form-control" placeholder="Risposta">
-              <label for="text">Nome nuovo Form:</label>
-                <input type="text" name="title" class="form-control" placeholder="Nome Form">
+              <label for="text">Se l'utente risponde :</label>
+              <input type="text" name="answer" class="form-control" placeholder="Risposta">
+              <label for="text" style="margin-top:15px">Chiedi:</label>
+              <input type="text" name="question" class="form-control" placeholder="Come ti chiami ?">
+              <label for="text" style="margin-top:15px">Titolo branch:</label>
+              <input type="text" name="title" class="form-control" placeholder="Nome Form">
               </div>
             </form>
           </div>
           <div class="modal-footer">
-          <button type="submit" class="btn btn-success" onclick="newTransition()">Submit</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-success" onclick="newTransition()">Salva</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">Chiudi</button>
           </div>
         </div>
 
@@ -126,14 +128,41 @@
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title">Node</h4>
+            <h4 class="modal-title">Modifica Domanda</h4>
+            <div class="title"></div>
           </div>
           <div class="modal-body">
-            Node description
+
+            <form>
+              <input type="hidden" name="form">
+              <input type="hidden" name="questionNumber">
+              <div class="form-group">
+              <label>Testo della domanda:</label>
+                <input type="text" class="form-control" name="title" placeholder="Domanda">
+              <label style="margin-top: 15px">Sottotitolo:</label>
+                <input type="text" class="form-control" name="subtitle" placeholder="Sottotitolo">
+              </div>
+              <br>
+              <div class="form-group">
+              <label>Tipo:</label>
+                <select onchange="changeQuestionType(this)" class="form-control">
+                  <option value="null">Seleziona il tipo</option>
+                  <option value="radio">Scelta singola</option>
+                  <option value="checkbox">Scelta multipla</option>
+                  <option value="textarea">Risposta aperta</option>
+                  <option value="file">Caricamento file</option>
+                </select>
+                <br>
+                <div id="questionOptions" style="display: none">
+                  
+                </div>
+              </div>
+            </form>
           </div>
+
           <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Submit</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Chiudi</button>
+            <button type="submit" class="btn btn-success" onclick="edit()">Salva</button>
           </div>
         </div>
 
@@ -163,8 +192,8 @@
             </form>
           </div>
           <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Submit</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">Chiudi</button>
+          <button type="submit" class="btn btn-success">Salva</button>
           </div>
         </div>
 
@@ -187,7 +216,7 @@
               <input type="hidden" name="form">
               <label>Testo della domanda:</label>
                 <input type="text" class="form-control" placeholder="Domanda">
-              <label>Sottotitolo:</label>
+              <label style="margin-top: 15px">Sottotitolo:</label>
                 <input type="text" class="form-control" placeholder="Sottotitolo">
               </div>
               <br>
@@ -208,8 +237,8 @@
             </form>
           </div>
           <div class="modal-footer">
-          <button type="submit" class="btn btn-success" onclick="newQuestion()">Submit</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">Chiudi</button>
+          <button type="submit" class="btn btn-success" onclick="newQuestion()">Aggiungi</button>
           </div>
         </div>
 
@@ -235,12 +264,11 @@
     </div>
 
     <div id="testing">
-      <button id="theme">theme</button>
-      <button id="serialize">serialize</button>
+      <button id="serialize" class="btn btn-success">Salva</button>
     </div>
     <div id="loading" style="position:absolute; top:10px; left:10px; background-color:white; padding:10px; border-radius:5px;">
       <img src="assets/loading.gif"/>
-      <div id="loading-message">loading custom elements...</div>
+      <div id="loading-message">Caricamento grafo...</div>
     </div>
     <script type="text/javascript">
       var fbpGraph = window.TheGraph.fbpGraph;
@@ -305,17 +333,19 @@
           editor.addEventListener('viewchanged', renderNav); // editor viewport changed
 
           // Toggle theme
-          var theme = "light";
-          document.getElementById("theme").addEventListener("click", function () {
-            theme = (theme==="dark" ? "light" : "dark");
-            editor.theme = theme;
-          });
+          // var theme = "light";
+          // document.getElementById("theme").addEventListener("click", function () {
+          //   theme = (theme==="dark" ? "light" : "dark");
+          //   editor.theme = theme;
+          // });
 
           // Serialize Graph
           document.getElementById("serialize").addEventListener("click", function () {
-            $('#newSerializeModal').modal('show');
-            $('#newSerializeModal .modal-body pre').html(JSON.stringify(model.serialize(), null, 2));
-            console.log(JSON.stringify(model.serialize(), null, 2));
+            //$('#newSerializeModal').modal('show');
+            //$('#newSerializeModal .modal-body pre').html(JSON.stringify(model.serialize(), null, 2));
+            downloadHTML(
+              TEMPLATE.replace('{form: formSerialized}', JSON.stringify(model.serialize(), null, 2)), 
+              'Esempio');
           });
 
           // Log some stuff
@@ -385,8 +415,12 @@
         if(type != 'null'){
           var metadata = {type: type, subtitle:subtitle};
           if (type == "radio" || type == "checkbox"){
+
+            $('#newQuestionModal #questionOptions').css('display','block');
+
+
             metadata['options'] = [];
-            $("#questionOptions input[type=text").each(function(){
+            $("#newQuestionModal #questionOptions input[type=text").each(function(){
               if($(this).val() != "")
                 metadata.options.push($(this).val());
             })
@@ -398,6 +432,38 @@
           $("#newQuestionModal input[type='text']:first").val("");
           $("#newQuestionModal input[placeholder='Sottotitolo']").val("");
           $("#newQuestionModal select:first").val(null);
+          $('#newQuestionModal #questionOptions').css('display','none');
+        }
+        else{
+          alert("selezionare il tipo di domanda");
+        }
+      }
+
+      function edit() {
+
+        var title = $("#nodeModal input[name=\"title\"]").val();
+        var subtitle = $("#nodeModal input[name=\"subtitle\"]").val();
+        var type = $("#nodeModal select").val();
+        var questionNumber = $("#nodeModal input[name='questionNumber']").val();
+        var formId = $("#nodeModal input[name='form']").val();
+
+        if(type != 'null'){
+          var metadata = {type: type, subtitle:subtitle};
+          if (type == "radio" || type == "checkbox"){
+            metadata['options'] = [];
+            $("#nodeModal #questionOptions input[type=text").each(function(){
+              if($(this).val() != "")
+                metadata.options.push($(this).val());
+            })
+          }
+
+          var question = getForm(formId, model).getQuestion(questionNumber);
+
+          question.question = title;
+          question.setMetadata(metadata);
+
+          load();
+          $("#nodeModal").modal("hide");
           $('#questionOptions').css('display','none');
         }
         else{
@@ -405,11 +471,13 @@
         }
       }
 
+
+
       function changeQuestionType(select){
-        var a = document.getElementById('questionOptions');
-        a.innerHTML = ' <input type="text" class="form-control">\
-                        <input type="text" class="form-control">\
-                        <input type="button" value="Aggiungi risposta" onclick="addResponse(this)">'
+        var a = $(select).parent().find('#questionOptions')[0];
+
+        a.innerHTML = '<input type="text" class="form-control" style="margin-top:15px" placeholder="Inserisci possibile risposta">\
+                        <input type="button" class="btn btn-primary" value="Aggiungi possibile risposta" onclick="addResponse(this)" style="margin-top:15px">'
         if (select.value == "radio" || select.value == "checkbox"){
           a.style.display = "block";
         }
@@ -421,23 +489,83 @@
       function addResponse(button){
         var div = button.parentNode;
         var x = document.createElement("INPUT");
+        x.style.marginTop = '15px';
+        x.placeholder="Inserisci possibile risposta";
         x.setAttribute("type", "text");
         x.setAttribute("class", "form-control");
         div.insertBefore(x, button);
       }
 
+      function newForm(form) {
+        if (form.name == 'Questionario Privacy') {
+          var form = getForm(form.metadata.formId, model);
+          var resp = prompt('Dai un titolo a questo gruppo');
+          var newGroup = window.TheGraph.createForm(resp);
+          form.addForm(newGroup);
+          load();
+        } else {
+          alert('Clicca su una regione azzurra per aggiungere un gruppo!');
+        }
+
+      }
+
+
+      function editQuestion(b, a, c) {
+        $("#nodeModal").modal("show");
+
+        var question = getForm(a.metadata.formId, model).getQuestion(a.metadata.questionNumber);
+
+
+        var container = $("#nodeModal #questionOptions");
+        container[0].innerHTML = '';
+
+        for(let i in question.metadata.options) {
+          container[0].innerHTML += '<input type="text" class="form-control" style="margin-top:15px" placeholder="Inserisci possibile risposta" value="'+question.metadata.options[i]+'">'
+        }
+
+        container[0].innerHTML += '<input type="button" class="btn btn-primary" value="Aggiungi possibile risposta" onclick="addResponse(this)" style="margin-top:15px">';
+
+        container.css("display", "block");
+
+
+        if (question.metadata.type && (question.metadata.type =='radio' || question.metadata.type =='checkbox'))
+          $('#nodeModal #questionOptions').css('display','block');
+        else 
+          $('#nodeModal #questionOptions').css('display','none');
+
+        $("#nodeModal input[name=\"questionNumber\"]").val(a.metadata.questionNumber);
+        $("#nodeModal input[name=\"form\"]").val(a.metadata.formId);
+
+        $("#nodeModal .title").html(a.metadata.formId);
+        $("#nodeModal .title").html(a.metadata.questionNumber);
+
+        $("#nodeModal .title").html(question.question);
+        $("#nodeModal input[name=\"title\"]").val(question.question);
+        $("#nodeModal input[name=\"subtitle\"]").val(question.metadata.subtitle);
+        $("#nodeModal select").val(question.metadata.type);
+        
+        
+
+      } 
+
       function newTransition(){
-        var ans = $("#transitionModal input[type='text']:first").val();
+        var quest = $("#transitionModal input[name='question']").val();
+        var ans = $("#transitionModal input[name='answer']").val();
         var title = $("#transitionModal input[name='title']").val();
         var questionNumber = $("#transitionModal input[name='questionNumber']").val();
         var formId = $("#transitionModal input[name='form']").val();
         if(ans != ''){
           var question = getForm(formId, model).getQuestion(questionNumber);
+
           var form = TheGraph.createForm(title);
+
+          form.storage[0].question = quest;
           question.addSubFormForAnswers([ans], form);
           load();
           $("#transitionModal").modal("hide");
+          $("#transitionModal input[name='answer']").val("");
           $("#transitionModal input[name='title']").val("");
+          $("#transitionModal input[name='question']").val("");
           $("#transitionModal input[name='questionNumber']").val("");
           $("#transitionModal input[name='form']").val("");
           $("#transitionModal input[name='res']").val("");
@@ -447,7 +575,33 @@
           alert("Inserire la risposta");
         }
       }
-      
     </script>
+
+
+
+    <script>
+
+
+      function downloadHTML(html, title) {
+
+        var blob = new Blob([html], {type: "text/html"});
+        var url  = URL.createObjectURL(blob);
+
+        var a = document.createElement('a');
+        a.download    = title ? title + ".html" : 'questionario.html';
+        a.href        = url;
+        document.getElementsByTagName('body')[0].appendChild(a);
+        a.click();
+      }
+
+      $.ajax({
+        method: 'GET',
+        url: 'template.html'
+      }).then(function(res) {
+        TEMPLATE = res;
+      })
+
+    </script>
+
   </body>
 </html>

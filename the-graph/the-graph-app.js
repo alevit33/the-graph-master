@@ -456,18 +456,18 @@ module.exports.register = function (context) {
 
       var code = event.keyCode;
       var handler = hotKeys[code];
-      if (handler) {
-        var readonly = this.props.readonly;
-        if (!readonly || (readonly && readOnlyActions[code])) {
-          handler(this);
-        }
-      }
+      // if (handler) {
+      //   var readonly = this.props.readonly;
+      //   if (!readonly || (readonly && readOnlyActions[code])) {
+      //     handler(this);
+      //   }
+      // }
     },
     keyUp: function (event) {
       // HACK metaKey global for taps https://github.com/Polymer/PointerGestures/issues/29
-      if (TheGraph.metaKeyPressed) {
-        TheGraph.metaKeyPressed = false;
-      }
+      // if (TheGraph.metaKeyPressed) {
+      //   TheGraph.metaKeyPressed = false;
+      // }
     },
     unselectAll: function (event) {
       // No arguments = clear selection

@@ -2145,8 +2145,9 @@ module.exports.register = function (context) {
   TheGraph.createForm = function(title){
     var form = new Form ({title:title});
     form.addQuestion({question: 'Default Question'});
+    form.storage[0].metadata = {type: 'textarea'};
     return form;
-  }
+  };
 
 
 };

@@ -127,7 +127,7 @@ module.exports.register = function (context) {
 
       var toggle = (TheGraph.metaKeyPressed || event.pointerType==="touch");
       this.props.onNodeSelection(this.props.nodeID, this.props.node, toggle);
-      $("#nodeModal").modal("show");
+      editQuestion(this.props.nodeID, this.props.node, toggle);
     },
     onTrackStart: function (event) {
       // Don't drag graph
