@@ -575,6 +575,41 @@
           alert("Inserire la risposta");
         }
       }
+
+      function deleteQuestion(formId, questionNumber){
+          var form = getForm(formId, model);
+          form.removeQuestion(questionNumber);
+          if (form.storage.length == 0){
+            deepDelete(formId, model, [])
+          }
+          load();
+      }
+
+      function deepDelete(id, rootForm, oldIds){
+        if(oldIds.includes(rootForm.id)){
+          return;
+        }
+        for (var i in rootForm.storage){
+          if (rootForm.storage[i].isQuestion()){
+            var question = rootForm.storage[i];
+            for(var ans in question.mapAnswers){
+              deepDelete(id,question.mapAnswers[ans],oldIds)
+              if(question.mapAnswers[ans].id == id){
+                delete question.mapAnswers[ans];
+              }
+            }
+          }
+          else{
+            deepDelete(id,rootForm.storage[i],oldIds);
+            if(rootForm.storage[i].id == id){
+              rootForm.removeQuestion(i);
+            }
+          }
+        }
+        oldIds.push(rootForm.id);
+      }
+
+
     </script>
 
 

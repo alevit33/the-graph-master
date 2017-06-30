@@ -107,6 +107,13 @@ var Form = function () {
 			return this.storage[index];
 		}
 	}, {
+		key: 'removeQuestion',
+		value: function removeQuestion() {
+			var index = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+
+			this.storage.splice(index, 1);
+		}
+	}, {
 		key: 'getQuestions',
 		value: function getQuestions() {
 			var res = [];

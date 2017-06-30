@@ -28,6 +28,7 @@ function getDefaultMenus(editor) {
           newSelection.push(selected);
         }
       }
+      window.deleteQuestion(item.metadata.formId,item.metadata.questionNumber);
       this.selectedNodes = newSelection;
     }.bind(editor),
     copy: function (graph, itemKey, item) {
