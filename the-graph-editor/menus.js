@@ -174,11 +174,18 @@ function getDefaultMenus(editor) {
           //modals.element();
         }
       },
-      // e4: pasteMenu,
+      e4: {
+        icon: "pencil",
+        iconLabel: "Modifica Form",
+        action: function (graph, itemKey, item) {
+          window.editForm(item.metadata.formId);
+        }
+      },
       s4: {
         icon: "trash-o",
         iconLabel: "Elimina",
         action: function (graph, itemKey, item) {
+          window.deleteForm(item.metadata.formId);
           graph.removeGroup(itemKey);
         }
       }

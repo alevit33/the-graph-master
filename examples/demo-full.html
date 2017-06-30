@@ -263,6 +263,42 @@
       </div>
     </div>
 
+    <!-- Form Modal -->
+    <div class="modal fade" id="formModal" role="dialog">
+      <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Modifica Form</h4>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="form-group">
+              <input type="hidden" name="form">
+              <label>Titolo del form:</label>
+                <input type="text" class="form-control" placeholder="Titolo" name="title">
+              <label style="margin-top: 15px">Sottotitolo:</label>
+                <input type="text" class="form-control" placeholder="Sottotitolo" name="subtitle">
+              </div>
+              <br>
+              <div class="form-group">
+              <label>Istruzioni aggiuntive:</label>
+                <div id="formItems" style="display: none">
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Chiudi</button>
+          <button type="submit" class="btn btn-success" onclick="applyForm()">Salva</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <div id="testing">
       <button id="serialize" class="btn btn-success">Salva</button>
     </div>
@@ -536,9 +572,6 @@
         $("#nodeModal input[name=\"questionNumber\"]").val(a.metadata.questionNumber);
         $("#nodeModal input[name=\"form\"]").val(a.metadata.formId);
 
-        $("#nodeModal .title").html(a.metadata.formId);
-        $("#nodeModal .title").html(a.metadata.questionNumber);
-
         $("#nodeModal .title").html(question.question);
         $("#nodeModal input[name=\"title\"]").val(question.question);
         $("#nodeModal input[name=\"subtitle\"]").val(question.metadata.subtitle);
@@ -607,6 +640,71 @@
           }
         }
         oldIds.push(rootForm.id);
+      }
+
+      function deleteForm(formId){
+        deepDelete(formId, model, []);
+      }
+
+      function editForm(formId) {
+        $("#formModal").modal("show");
+        $("#formModal input[name='form']").val(formId);
+
+        var form = getForm(formId, model);
+        var metadata = form.getQuestion().metadata.header;
+
+
+        var container = $("#formModal #formItems");
+        container[0].innerHTML = '';
+
+        for(let i in metadata.items) {
+          container[0].innerHTML += '<input type="text" class="form-control" style="margin-top:15px" value="'+metadata.items[i]+'">'
+        }
+
+        container[0].innerHTML += '<input type="button" class="btn btn-primary" value="Aggiungi elemento" onclick="addElement(this)" style="margin-top:15px">';
+
+        container.css("display", "block");
+
+        $("#formModal input[name=\"title\"]").val(metadata.title);
+        $("#formModal input[name=\"subtitle\"]").val(metadata.subtitle);
+
+      } 
+
+      function addElement(button){
+        var div = button.parentNode;
+        var x = document.createElement("INPUT");
+        x.style.marginTop = '15px';
+        x.placeholder="Inserisci elemento";
+        x.setAttribute("type", "text");
+        x.setAttribute("class", "form-control");
+        div.insertBefore(x, button);
+      }
+
+      function applyForm(){
+        var title = $("#formModal input[name='title']").val();
+        var subtitle = $("#formModal input[name='subtitle']").val();
+        var formId = $("#formModal input[name='form']").val();
+        var metadata = {title: title, subtitle:subtitle};
+          
+        $('#formModal #formItems').css('display','block');
+        metadata['items'] = [];
+        $("#formModal #formItems input[type=text]").each(function(){
+          if($(this).val() != "")
+            metadata.items.push($(this).val());
+        })
+
+        var form = getForm(formId, model);
+        form.title = title;
+        var firstQuestion = form.getQuestion();
+        var meta = firstQuestion.getMetadata();
+        meta['header'] = metadata;
+        firstQuestion.setMetadata(meta);
+        load();
+        $("#formModal").modal("hide");
+        $("#formModal input[name='title']").val("");
+        $("#formModal input[name='subtitle']").val("");
+        $("#formModal input[name='form']").val("");
+        $('#formModal #formItems').css('display','none');
       }
 
 
