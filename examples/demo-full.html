@@ -99,15 +99,25 @@
           </div>
           <div class="modal-body">
             <form>
-              <div class="form-group">
               <input type="hidden" name="form">
-              <input type="hidden" name="questionNumber">
-              <label for="text">Se l'utente risponde :</label>
-              <input type="text" name="answer" class="form-control" placeholder="Risposta">
-              <label for="text" style="margin-top:15px">Chiedi:</label>
-              <input type="text" name="question" class="form-control" placeholder="Come ti chiami ?">
-              <label for="text" style="margin-top:15px">Titolo branch:</label>
-              <input type="text" name="title" class="form-control" placeholder="Nome Form">
+                <input type="hidden" name="questionNumber">
+                <label for="text">Se l'utente risponde :</label>
+                <input type="text" name="answer" class="form-control" placeholder="Risposta">
+              <br>
+              <div class="checkbox">
+                <label><input type="checkbox" name="newForm" checked="checked" onchange="if(this.checked){$('#existingFormTransition').css('display','none');$('#newFormTransition').css('display','block');}else{$('#existingFormTransition').css('display','block');$('#newFormTransition').css('display','none');}">Nuovo form</label>
+              </div>
+              <div class="form-group" id="newFormTransition">
+                <label for="text" style="margin-top:15px">Chiedi:</label>
+                <input type="text" name="question" class="form-control" placeholder="Come ti chiami ?">
+                <label for="text" style="margin-top:15px">Titolo branch:</label>
+                <input type="text" name="title" class="form-control" placeholder="Nome Form">
+              </div>
+              <div class="form-group" id="existingFormTransition" style="display: none">
+                <label style="margin-top:15px">Scegli Form:</label>
+                <select class="form-control" name="existingForm">
+                  
+                </select>
               </div>
             </form>
           </div>
@@ -300,7 +310,7 @@
     </div>
 
     <div id="testing">
-      <button id="serialize" class="btn btn-success">Salva</button>
+      <button id="serialize" onclick="exportForm()" class="btn btn-success">Salva</button>
     </div>
     <div id="loading" style="position:absolute; top:10px; left:10px; background-color:white; padding:10px; border-radius:5px;">
       <img src="assets/loading.gif"/>
@@ -389,7 +399,11 @@
           //console.log(editor);
         };
 
-        loadGraph(TheGraph.trasformData(model.serialize()));
+        //loadGraph(TheGraph.trasformData(model.serialize()));
+        loadingMessage.innerHTML = "loading graph data...";
+        load();
+        var loading = document.getElementById("loading");
+        loading.parentNode.removeChild(loading);
 
         // Resize to fill window and also have explicit w/h attributes
         var editor = document.getElementById("editor");
@@ -413,6 +427,13 @@
             }
             editor.graph = graph;
           });
+
+        var existingForm = $('#existingFormTransition select');
+        existingForm.html("<option value='null'>Seleziona un questionario</option>");
+        var modelSer = model.serialize();
+        for(var form in modelSer){
+          existingForm.append("<option value='" + form + "'>" + modelSer[form].title + "</option>");
+        }
       }
 
       /**
@@ -579,34 +600,58 @@
         
         
 
-      } 
+      }
+
+      function createTransaction(question, form, ans){
+        question.addSubFormForAnswers([ans], form);
+        load();
+        $("#transitionModal").modal("hide");
+        $("#transitionModal input[name='answer']").val("");
+        $("#transitionModal input[name='title']").val("");
+        $("#transitionModal input[name='question']").val("");
+        $("#transitionModal input[name='questionNumber']").val("");
+        $("#transitionModal input[name='form']").val("");
+        $("#transitionModal input[name='res']").val("");
+        $("#transitionModal select[name='existingFormTr']").val("null");
+        $("#transitionModal input[name='newForm']").prop('checked', true);
+        $("#transitionModal #existingFormTransition").css('display','none');
+        $("#transitionModal #newFormTransition").css('display','block');
+        $('#transitionModal').css('display','none');
+      }
 
       function newTransition(){
-        var quest = $("#transitionModal input[name='question']").val();
         var ans = $("#transitionModal input[name='answer']").val();
-        var title = $("#transitionModal input[name='title']").val();
         var questionNumber = $("#transitionModal input[name='questionNumber']").val();
         var formId = $("#transitionModal input[name='form']").val();
-        if(ans != ''){
-          var question = getForm(formId, model).getQuestion(questionNumber);
+        var newForm = $("#transitionModal input[name='newForm']");
+        if(newForm.prop('checked')){
+          var quest = $("#transitionModal input[name='question']").val();
+          var title = $("#transitionModal input[name='title']").val();
+          
+          if(ans != ''){
+            var question = getForm(formId, model).getQuestion(questionNumber);
 
-          var form = TheGraph.createForm(title);
+            var form = TheGraph.createForm(title);
+            form.storage[0].question = quest;
 
-          form.storage[0].question = quest;
-          question.addSubFormForAnswers([ans], form);
-          load();
-          $("#transitionModal").modal("hide");
-          $("#transitionModal input[name='answer']").val("");
-          $("#transitionModal input[name='title']").val("");
-          $("#transitionModal input[name='question']").val("");
-          $("#transitionModal input[name='questionNumber']").val("");
-          $("#transitionModal input[name='form']").val("");
-          $("#transitionModal input[name='res']").val("");
-          $('#transitionModal').css('display','none');
+            createTransaction(question, form, ans);
+          }
+          else{
+            alert("Inserire la risposta");
+          }
         }
         else{
-          alert("Inserire la risposta");
+          var existingFormId = $("#transitionModal select[name='existingForm']").val();
+          if(existingFormId != null){
+            var question = getForm(formId, model).getQuestion(questionNumber);
+            var form = getForm(existingFormId, model);
+            createTransaction(question, form, ans);
+          }
+          else{
+            alert("Selezionare il form");
+          }
         }
+        
       }
 
       function deleteQuestion(formId, questionNumber){
@@ -644,6 +689,7 @@
 
       function deleteForm(formId){
         deepDelete(formId, model, []);
+        load();
       }
 
       function editForm(formId) {
@@ -707,6 +753,11 @@
         $('#formModal #formItems').css('display','none');
       }
 
+      function exportForm(){
+        downloadHTML(
+              TEMPLATE.replace('{form: formSerialized}', JSON.stringify(model.serialize(), null, 2)), 
+              'Esempio');
+      }
 
     </script>
 

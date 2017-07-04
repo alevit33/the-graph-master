@@ -62,11 +62,11 @@ function getDefaultMenus(editor) {
     edge: {
       actions: edgeActions,
       icon: "long-arrow-right",
-      s4: {
+      /*s4: {
         icon: "trash-o",
         iconLabel: "Elimina",
         action: edgeActions.delete
-      }
+      }*/
     },
     node: {
       actions: nodeActions,

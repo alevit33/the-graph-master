@@ -1,4 +1,4 @@
-var sample = {
+/* var sample = {
   "id": "ti6yn",
   "project": "",
   "properties": {
@@ -471,7 +471,7 @@ var sample = {
     }
   },
   "connections": [],
-  /* [
+  [
     {
       "src": {
         "process": "dom/GetElement_f4nkd",
@@ -1428,14 +1428,55 @@ var sample = {
         "port": "string"
       }
     }
-  ]*/
-};
+  ]
+};*/
 
 
 
 var processes = {};
 var groups = [];
 var connections = [];
+var sample = {
+  "id": "ti6yn",
+  "project": "",
+  "properties": {
+    "name": "photobooth",
+    "environment": {
+      "runtime": "html",
+      "src": "preview/iframe.html",
+      "width": 300,
+      "height": 300,
+      "content": "    <video id=\"vid\" autoplay loop width=\"640\" height=\"480\" style=\"display:none;\"></video>\n    <canvas id=\"out\" width=\"640\" height=\"480\" style=\"max-width:100%;\"></canvas>\n\n<input id=\"slider\" type=\"range\" min=\"0\" max=\"1\" value=\"0.5\" step=\"0.01\"></input>\n    <button id=\"start\">start camera</button>\n    <button id=\"prev\">prev</button>\n    <button id=\"next\">next</button>\n    <button id=\"save\">save</button>\n\n<style>\n  #saved img { width: 160px; height: 120px;}\n</style>\n<div id=\"saved\"></div>"
+    }
+  },
+  "inports": { 
+    "prev": {
+      "process": "routers/KickRouter_bzaiw",
+      "port": "prev",
+      "metadata": {
+        "x": 0,
+        "y": 144
+      }
+    },
+    "next": {
+      "process": "routers/KickRouter_bzaiw",
+      "port": "next"
+    }
+  },
+  "outports": {
+    "image": {
+      "process": "core/Split_xyb8x",
+      "port": "out",
+      "metadata": {
+        "x": 2000,
+        "y": 1000
+      }
+    }
+  },
+  "groups": [ ],
+  "processes": {},
+  "connections": [],
+};
 
 function makeid()
 {
@@ -1477,7 +1518,7 @@ function processForm(group, questions, level, forms, xOffset, currentFormId) {
           },
           "tgt": {
             "process": formNodes.nodes[0],
-            "port": "class"
+            "port": "in"
           },
           "metadata": {
             "route": "0"
@@ -1485,20 +1526,29 @@ function processForm(group, questions, level, forms, xOffset, currentFormId) {
         });
       }
 
-
-      xOffset = formNodes.offset;
-
-      groups.push({
-        name: forms[questions[i].form].title,
-        nodes: formNodes.nodes,
-        spacing: 400,
-        metadata: {
-          description: "",
-          color: 1,
-          spacing: 10,
-          formId: questions[i].form
+      var found = false;
+      for (var index in groups){
+        if(groups[index].metadata.formId == questions[i].form){
+          found = true;
         }
-      });
+      }
+
+      if(!found){
+        xOffset = formNodes.offset;
+
+        groups.push({
+          name: forms[questions[i].form].title,
+          nodes: formNodes.nodes,
+          spacing: 400,
+          metadata: {
+            description: "",
+            color: 1,
+            spacing: 10,
+            formId: questions[i].form
+          }
+        });
+
+      }
 
       nodes = nodes.concat(formNodes.nodes);
 
@@ -1527,7 +1577,7 @@ function processForm(group, questions, level, forms, xOffset, currentFormId) {
           },
           "tgt": {
             "process": key,
-            "port": "class"
+            "port": "in"
           },
           "metadata": {
             "route": "0"
@@ -1547,40 +1597,66 @@ function processForm(group, questions, level, forms, xOffset, currentFormId) {
 
         var target = questions[i].mapAnswers[k];
 
-        var formNodes1 = processForm(forms[target], forms[target].questions, level + 1, forms, off + n, target);
-
-        n += forms[target].questions.length * 350;
-
-        connections.push({
-          "src": {
-            "process": key,
-            "port": "out"
-          },
-          "tgt": {
-            "process": formNodes1.nodes[0],
-            "port": "class"
-          },
-          "metadata": {
-            "route": "0"
+        var found = false;
+        for (var index in groups){
+          if(groups[index].metadata.formId == target){
+            found = true;
           }
-        });
+        }
 
-        groups.push({
-          name: forms[target].title,
-          nodes: formNodes1.nodes,
-          spacing: 400,
-          metadata: {
-            description: "",
-            color: 1,
-            spacing: 10,
-            formId: target
-          }
-        });
+        if(!found){
+          var formNodes1 = processForm(forms[target], forms[target].questions, level + 1, forms, off + n, target);
 
-        n++;
+          connections.push({
+            "src": {
+              "process": key,
+              "port": "out"
+            },
+            "tgt": {
+              "process": formNodes1.nodes[0],
+              "port": k
+            },
+            "metadata": {
+              "route": "0"
+            }
+          });
 
+          n += forms[target].questions.length * 350;
+
+          groups.push({
+            name: forms[target].title,
+            nodes: formNodes1.nodes,
+            spacing: 400,
+            metadata: {
+              description: "",
+              color: 1,
+              spacing: 10,
+              formId: target
+            }
+          });
+
+          n++;
+        }
+        else{
+          for (var n in processes){
+            if(processes[n].metadata.formId == target && processes[n].metadata.questionNumber == 0){
+              connections.push({
+                "src": {
+                  "process": key,
+                  "port": "out"
+                },
+                "tgt": {
+                  "process": processes[n].metadata.id,
+                  "port": k
+                },
+                "metadata": {
+                  "route": "0"
+                }
+              });
+            }
+          } 
+        }
       }
-
 
       processes[key] = node;
       nodes.push(key);
@@ -1613,12 +1689,207 @@ function trasformData(data) {
         name: rootForm.title,
         nodes: elements.nodes,
         metadata: {
-          description: "Esempio contenitore",
+          description: "Form principale",
           color: 5,
           spacing: 70,
           formId: id
         }
       });
+    }
+  }
+
+  sample.processes = processes;
+  sample.groups = groups;
+  sample.connections = connections;
+
+  return sample;
+}
+
+
+function processFormLevel(questions, level, forms, currentFormId, xOffset, currentLevel, branchNode) {
+
+  if (!currentLevel)
+    currentLevel = 0;
+
+  if (!xOffset)
+    xOffset = 0;
+
+  if (!branchNode)
+    branchNode = null;
+
+  var nodes = [];
+  
+  for (var i = 0; i < questions.length; i++) {
+
+    if (questions[i].form) {
+      if(currentLevel < level){
+        if(xOffset == 0){
+          xOffset = 500;
+        }
+        xOffset = xOffset + 70;// + forms[questions[i].form].questions.length * 180;
+        var res = processFormLevel(forms[questions[i].form].questions, level, forms, questions[i].form, xOffset, currentLevel, branchNode);
+        nodes = nodes.concat(res.nodes);
+        xOffset = res.xOffset;
+      }
+      else if(currentLevel == level){
+        var formNodes = [];
+        var found = false;
+        for (var index in groups){
+          if(groups[index].metadata.formId == questions[i].form){
+            found = true;
+            formNodes = groups[index].nodes;
+            if(branchNode != null){ //multiple form reference
+              connections.push({
+                "src": {
+                  "process": branchNode.key,
+                  "port": branchNode.answer
+                },
+                "tgt": {
+                  "process": groups[index].nodes[0],
+                  "port": "in"
+                },
+                "metadata": {
+                  "route": "0"
+                }
+              }); 
+            }
+          }
+        }
+
+        if(!found){
+          formNodes = processFormLevel(forms[questions[i].form].questions, level, forms, questions[i].form, xOffset + 70, currentLevel, branchNode);
+          xOffset = formNodes.xOffset;
+
+          groups.push({
+            name: forms[questions[i].form].title,
+            nodes: formNodes.nodes,
+            spacing: 400,
+            metadata: {
+              description: "",
+              color: 1,
+              spacing: 10,
+              formId: questions[i].form
+            }
+          });
+        }
+
+        if (i > 0) {
+          connections.push({
+            "src": {
+              "process": nodes[nodes.length -1],
+              "port": "out"
+            },
+            "tgt": {
+              "process": formNodes.nodes[0],
+              "port": "in"
+            },
+            "metadata": {
+              "route": "0"
+            }
+          });
+        }
+        
+        nodes = nodes.concat(formNodes.nodes);
+      }
+    } else {
+      if(currentLevel < level){
+        for (var k in questions[i].mapAnswers) {
+          var target = questions[i].mapAnswers[k];
+          res = processFormLevel([{"form": target}], level, forms, target, xOffset, currentLevel + 1, {key:questions[i].key,answer:k});
+          nodes = nodes.concat(res.nodes);
+          xOffset = res.xOffset;
+        }
+      }
+      else if(currentLevel == level){
+        xOffset = xOffset + 180;
+        var key = makeid();
+        var node = {
+          "component": questions[i].question,
+          "metadata": {
+            "formId": currentFormId,
+            "questionNumber": i,
+            id: key,
+            "x": xOffset,
+            "y": level*300, 
+            "label": questions[i].question.substr(0, 15) + '..',
+            padding: 400,
+          }
+        };
+        questions[i].key = key;
+
+        if(i > 0 || branchNode == null){
+          connections.push({
+            "src": {
+              "process": nodes[nodes.length -1],
+              "port": "out"
+            },
+            "tgt": {
+              "process": key,
+              "port": "in"
+            },
+            "metadata": {
+              "route": "0"
+            }
+          });
+        }
+        else{
+          connections.push({
+            "src": {
+              "process": branchNode.key,
+              "port": branchNode.answer
+            },
+            "tgt": {
+              "process": key,
+              "port": "in"
+            },
+            "metadata": {
+              "route": "0"
+            }
+          });
+        }
+
+        processes[key] = node;
+        nodes.push(key);
+      }
+    }
+  }
+
+  return {
+    nodes: nodes,
+    xOffset: xOffset
+  };
+}
+
+
+function trasformData2(data) {
+
+  processes = {};
+  groups = [];
+  connections = [];
+
+  for (var id in data) {
+
+    if (data[id].root) {
+      var rootForm = data[id];
+
+      var elements = processFormLevel(rootForm.questions, 0, data, id).nodes;
+
+      groups.unshift({
+        name: rootForm.title,
+        nodes: elements,
+        metadata: {
+          description: "Form principale",
+          color: 5,
+          spacing: 70,
+          formId: id
+        }
+      });
+
+      var l = 1;
+      while(elements.length > 0){
+        elements = processFormLevel(rootForm.questions, l, data, id).nodes;
+        l++;
+      }
     }
   }
 
@@ -2138,7 +2409,7 @@ module.exports.register = function (context) {
 
   var TheGraph = context.TheGraph;
 
-  TheGraph.trasformData = trasformData;
+  TheGraph.trasformData = trasformData2;
 
   TheGraph.model = rootForm;
 
